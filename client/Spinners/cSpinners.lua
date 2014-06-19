@@ -45,29 +45,10 @@ function Spinners:__init()
 		"fx_env_pipeline_ventpop_360_10.psmb",
 		"fx_exp_electric_large_10.psmb"
 	}
-	
-	-- Table for Particle Systems
-	self.particlesystems = {}
-	
-	-- Retrieve player values
-	self.values = {}
-	local players = {}
-	for player in Client:GetPlayers() do
-		table.insert(players, player)
-	end
-	table.insert(players, LocalPlayer)
-	for _, player in pairs(players) do
-		if IsValid(player) then
-			local playerId = player:GetId() + 1
-			self.values[playerId] = player:GetValue("Spinner")
-		end
-	end
 		
 	Events:Subscribe("PostTick", self, self.PostTick)
 	Events:Subscribe("Render", self, self.Render)
 	Events:Subscribe("KeyUp", self, self.KeyUp)
-	Events:Subscribe("ModuleUnload", self, self.Unload)
-	Events:Subscribe("PlayerNetworkValueChange", self, self.ValueChange)
 	
 end
 
@@ -76,19 +57,19 @@ function Spinners:KeyUp(args)
 	if LocalPlayer:InVehicle() then return end
 	
 	if args.key == self.nextKey then
-		if (self.values[LocalPlayer:GetId() + 1] or 0) + 1 > #self.path then
+		if (LocalPlayer:GetValue("Spinner") or 0) + 1 > #self.path then
 			Network:Send("SetSpinner", 0)
 		else
-			Network:Send("SetSpinner", (self.values[LocalPlayer:GetId() + 1] or 0) + 1)
+			Network:Send("SetSpinner", (LocalPlayer:GetValue("Spinner") or 0) + 1)
 		end
 		return
 	end
 	
 	if args.key == self.prevKey then
-		if (self.values[LocalPlayer:GetId() + 1] or 0) - 1 < 0 then
+		if (LocalPlayer:GetValue("Spinner") or 0) - 1 < 0 then
 			Network:Send("SetSpinner", #self.path)
 		else
-			Network:Send("SetSpinner", (self.values[LocalPlayer:GetId() + 1] or 0) - 1)
+			Network:Send("SetSpinner", (LocalPlayer:GetValue("Spinner") or 0) - 1)
 		end
 		return
 	end
@@ -97,7 +78,6 @@ end
 
 function Spinners:PostTick(pid)
 
-	local checked = {}
 	local players = {}
 	for player in Client:GetStreamedPlayers() do
 		table.insert(players, player)
@@ -107,8 +87,8 @@ function Spinners:PostTick(pid)
 	for _, player in pairs(players) do
 		if IsValid(player) then
 			if not player:InVehicle() then
-				local playerId = player:GetId() + 1
-				if self.path[(self.values[playerId] or 0)] then
+				local value = player:GetValue("Spinner") or 0
+				if self.path[value] then
 					local pos = player:GetPosition()
 					local dist = 1
 					if self.preset == "Head" then
@@ -120,53 +100,27 @@ function Spinners:PostTick(pid)
 						dist = 0.1
 					end
 					local angle = Angle(math.rad(Game:GetTime()*1000), 0, 0)
-					self.particlesystems[playerId] = ClientParticleSystem.Play(AssetLocation.Game, {
-						path = self.path[self.values[playerId]],
+					ClientParticleSystem.Play(AssetLocation.Game, {
+						path = self.path[value],
 						position = pos + angle * Vector3(dist, 0.1, 0),
 						angle = angle
 					})
 					angle = Angle(math.pi + math.rad(Game:GetTime()*1000), 0, 0)
-					self.particlesystems[playerId] = ClientParticleSystem.Play(AssetLocation.Game, {
-						path = self.path[self.values[playerId]],
+					ClientParticleSystem.Play(AssetLocation.Game, {
+						path = self.path[value],
 						position = pos + angle * Vector3(dist, 0.1, 0),
 						angle = angle
 					})
 				end
-				checked[playerId] = true
 			end
         end
     end
-	
-	for i, _ in pairs(self.particlesystems) do
-		if not checked[i] then
-			if self.particlesystems[i] then
-				self.particlesystems[i]:Remove()
-			end
-			self.particlesystems[i] = nil
-		end
-	end
 	
 end
 
 function Spinners:Render()
 	if not self.debug then return end
 	Render:DrawText(Vector2(200, 40), tostring(self.path[self.values[LocalPlayer:GetId() + 1]] or ""), Color(255, 255, 255), TextSize.Large)
-end
-
-function Spinners:ValueChange(args)
-	if args.key == "Spinner" then
-		local playerId = args.player:GetId() + 1
-		self.values[playerId] = args.value
-	end
-end
-
-function Spinners:Unload()
-	for i, _ in pairs(self.particlesystems) do
-		if self.particlesystems[i] then
-			self.particlesystems[i]:Remove()
-		end
-		self.particlesystems[i] = nil
-	end
 end
 
 Spinners = Spinners()
