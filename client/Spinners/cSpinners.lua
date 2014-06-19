@@ -14,7 +14,7 @@ function Spinners:__init()
 	self.preset = "Forearm"
 	-- "Head", "Forearm", "Default".
 	
-	-- Show name of active particle
+	-- Show name of active particle system
 	self.debug = false
 
 	-- List of enabled particle systems
@@ -104,7 +104,7 @@ function Spinners:PostTick(pid)
 					position = pos + angle * Vector3(dist, 0.1, 0),
 					angle = angle
 				})
-				angle = Angle(math.pi + math.rad(Game:GetTime()*1000), 0, 0)
+				angle.yaw = angle.yaw + math.pi
 				ClientParticleSystem.Play(AssetLocation.Game, {
 					path = self.path[value],
 					position = pos + angle * Vector3(dist, 0.1, 0),
