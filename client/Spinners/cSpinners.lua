@@ -85,36 +85,34 @@ function Spinners:PostTick(pid)
 	table.insert(players, LocalPlayer)
 	
 	for _, player in pairs(players) do
-		if IsValid(player) then
-			if not player:InVehicle() then
-				local value = player:GetValue("Spinner") or 0
-				if self.path[value] then
-					local pos = player:GetPosition()
-					local dist = 1
-					if self.preset == "Head" then
-						pos = player:GetBonePosition("ragdoll_Head") + Vector3(0, 0.1, 0)
-						dist = 0.2
-					end
-					if self.preset == "Forearm" then
-						pos = player:GetBonePosition("ragdoll_LeftForeArm") - Vector3(0, 0.4, 0) - player:GetAngle() * Vector3(0.05, 0, 0)
-						dist = 0.1
-					end
-					local angle = Angle(math.rad(Game:GetTime()*1000), 0, 0)
-					ClientParticleSystem.Play(AssetLocation.Game, {
-						path = self.path[value],
-						position = pos + angle * Vector3(dist, 0.1, 0),
-						angle = angle
-					})
-					angle = Angle(math.pi + math.rad(Game:GetTime()*1000), 0, 0)
-					ClientParticleSystem.Play(AssetLocation.Game, {
-						path = self.path[value],
-						position = pos + angle * Vector3(dist, 0.1, 0),
-						angle = angle
-					})
+		if IsValid(player) and not player:InVehicle() then
+			local value = player:GetValue("Spinner") or 0
+			if self.path[value] then
+				local pos = player:GetPosition()
+				local dist = 1
+				if self.preset == "Head" then
+					pos = player:GetBonePosition("ragdoll_Head") + Vector3(0, 0.1, 0)
+					dist = 0.2
 				end
+				if self.preset == "Forearm" then
+					pos = player:GetBonePosition("ragdoll_LeftForeArm") - Vector3(0, 0.4, 0) - player:GetAngle() * Vector3(0.05, 0, 0)
+					dist = 0.1
+				end
+				local angle = Angle(math.rad(Game:GetTime()*1000), 0, 0)
+				ClientParticleSystem.Play(AssetLocation.Game, {
+					path = self.path[value],
+					position = pos + angle * Vector3(dist, 0.1, 0),
+					angle = angle
+				})
+				angle = Angle(math.pi + math.rad(Game:GetTime()*1000), 0, 0)
+				ClientParticleSystem.Play(AssetLocation.Game, {
+					path = self.path[value],
+					position = pos + angle * Vector3(dist, 0.1, 0),
+					angle = angle
+				})
 			end
-        end
-    end
+		end
+    	end
 	
 end
 
